@@ -18,10 +18,15 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
+#include "main.h"
 #include "CAN_messages.h"
 
 
+
+
 int main(void) {
+
+
 
 
 	int s; // File descriptor for the socket
@@ -32,9 +37,14 @@ int main(void) {
 
 	CAN_SendSync(s);/* Send a CAN SYNC frame on the specified socket */
 
-	sleep(2); /* Sleep for 2 seconds */
+	sleep(1); /* Sleep for 2 seconds */
 
 	CAN_ReceiveMessages(s);
+
+	measurement_t measurements_table[CAN_MAX_TOTAL_MESSAGES];
+	uint32_t nb_measurements;
+
+
 
 
 	return 0;

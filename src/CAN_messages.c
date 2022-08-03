@@ -6,8 +6,8 @@
  */
 #include "CAN_messages.h"
 
-
-
+struct can_frame can_buff[CAN_MAX_TOTAL_MESSAGES]; /* Global CAN message buffer */
+uint32_t can_msg_cnt;
 
 int CAN_Init(int* s){
 
@@ -68,12 +68,42 @@ void CAN_SendSync(int s){
 
 }
 
-int CAN_ReceiveMessages(int s){
+void CAN_ReceiveMessages(int s){
+
+
+	int nbytes = 0; /* Initialize to zero so the fct runs the first time */
+	can_msg_cnt = 0; /* Reset the message count cause we're about to receive a new batch of messages */
+
+	do{
+
+		nbytes = read(s, &can_buff[can_msg_cnt], sizeof(struct can_frame));/* Lis les messages CAN en les mettant dans le buffer */
+		if(nbytes > 0){ /* Si un message significatif a été reçu */
+			can_msg_cnt++;
+		}
+
+	}while(!(nbytes < 0));/* nbytes sera négatif lorsqu'il n'y aura plus de messages à recevoir */
+
+
+}
+
+uint32_t CAN_DetectMeasurements(int s/*, measurement_t * measurements_table*/){
+
+	uint32_t nb_measurements = 0;
+
+
+	CAN_SendSync(s);/* Send a CAN SYNC frame on the specified socket */
+	sleep(1); /* Sleep for 2 seconds */
+	CAN_ReceiveMessages(s);
+
+
+	return nb_measurements;
+}
+
+int CAN_MessagePrintout(int s){
 
 
 	int nbytes;
 	struct can_frame frame;
-
 	uint8_t count = 0;
 	for(count = 0; count < 32; count++){
 
@@ -109,6 +139,4 @@ int CAN_ReceiveMessages(int s){
 	return 0;
 
 }
-
-
 
