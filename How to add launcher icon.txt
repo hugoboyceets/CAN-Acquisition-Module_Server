@@ -1,0 +1,12 @@
+Add laucher file (something.desktop) in /usr/share/applications
+
+In this directory, the icon should be present for all users.
+
+In the launcher file, put the following text:
+
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=CANStarter
+Icon=/usr/share/icons/Humanity/apps/128/terminal.svg
+Exec=/home/hugo/eclipse-workspace/CAN-Acquisition-Module_Server/Debug/setupcan0.sh

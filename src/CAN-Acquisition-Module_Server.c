@@ -18,15 +18,13 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include "main.h"
 #include "CAN_messages.h"
 
-
+#define STRING_BUFF_LEN 32
+#define LONG_STRING_BUFF_LEN 512
 
 
 int main(void) {
-
-
 
 
 	int s; // File descriptor for the socket
@@ -35,15 +33,12 @@ int main(void) {
 
 	CAN_Init(&s); /* Run the initialization procedure, updating s */
 
-	CAN_SendSync(s);/* Send a CAN SYNC frame on the specified socket */
+	measurement_t measurements_table[CAN_MAX_TOTAL_MESSAGES];/* this lists all the meas. that are available on CANbus and that we'll include in our .csv file (in order). */
+	uint32_t nb_measurements; /* Number of elements in the measurements_table */
 
-	sleep(1); /* Sleep for 2 seconds */
+	CAN_DetectMeasurements(s, &measurements_table, &nb_measurements);
 
-	CAN_ReceiveMessages(s);
-
-	measurement_t measurements_table[CAN_MAX_TOTAL_MESSAGES];
-	uint32_t nb_measurements;
-
+	printf("Measurement table done\n");
 
 
 
