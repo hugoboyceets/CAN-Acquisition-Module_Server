@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+#Acquired Data
+
+~/eclipse-workspace/CAN-Acquisition-Module_Server/Data/
+
+
+
