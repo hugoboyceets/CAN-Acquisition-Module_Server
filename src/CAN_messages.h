@@ -25,6 +25,8 @@
 
 #include <linux/can.h>
 
+#include "main.h"
+
 
 #define CAN_INTERFACE "can0"	/* Name of the CANbus interface used for the program*/
 
@@ -34,6 +36,7 @@
 
 #define CAN_MAX_NODES 128
 #define CAN_NODE_ID_Msk 0x7F /* =127. The 7 least significant bits are used for the node IDs.  */
+
 
 typedef enum { /* The columns of the .csv file will appear in the order they are defined here.
  	 They can be arranged in any random order. However, be sure to leave the last element as CHANNEL_NUMBER_OF_CHANNELS!*/
@@ -72,10 +75,15 @@ void CAN_SendSync(int s);
 
 void CAN_ReceiveMessages(int s);
 
-void CAN_DetectMeasurements(int s, measurement_t * measurements_table, uint32_t * nb_measurements);
+void CAN_DetectMeasurements(int s, measurement_t *measurements_table, uint32_t *nb_measurements);
 
-bool CAN_SearchMessage(channel_t channel, uint8_t node_id);
+bool CAN_SearchMessage(channel_t channel, uint8_t node_id, uint32_t * index);
 uint32_t CAN_IDLookup(channel_t channel, uint8_t node_id);
+void CAN_ChannelNameLookup(channel_t channel, char * str, size_t str_len);
+
+void CAN_GetMeasurementNameStr(channel_t channel, uint8_t node_id, char * str, size_t str_len);
+
+void CAN_GetMeasurementValueStr(channel_t channel, uint8_t node_id, char * str, size_t str_len);
 
 int CAN_MessagePrintout(int s);
 void CAN_NodePrintout(uint8_t, uint8_t *);
