@@ -90,7 +90,7 @@ void generate_filename(char *filename){
         puts("The localtime() function failed");
     }
 
-    sprintf(filename,"%s/Data Acquisition %04d-%02d-%02d %02d:%02d:%02d.csv", ABSOLUTE_PATH, ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+    sprintf(filename,"%s/Data_Acquisition_%04d-%02d-%02d_%02dh%02dm%02ds.csv", ABSOLUTE_PATH, ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
 
 }
 

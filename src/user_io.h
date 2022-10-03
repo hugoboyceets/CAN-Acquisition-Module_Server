@@ -7,7 +7,7 @@
 #include "CAN_messages.h"
 
 
-#define ABSOLUTE_PATH  "/home/hugo/eclipse-workspace/CAN-Acquisition-Module_Server/Data" /*Absolute path!*/
+#define ABSOLUTE_PATH  "/home/hugo/Documents/AcqData" /*Absolute path!*/
 
 void print_measurements(measurement_t *, uint8_t);
 int32_t prompt_for_number(int32_t *);
