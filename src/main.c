@@ -27,7 +27,7 @@
 bool newDay(time_t);
 
 int main(void) {
-
+//Ttestestest
 	/********************************************************************Initiate connection  start *****************************************************/
 
 	int s; // File descriptor for the socket
