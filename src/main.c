@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
+#include <errno.h>
 
 
 #include <linux/can.h>
@@ -23,32 +24,80 @@
 #include "user_io.h"
 #include "main.h"
 
+#define NUMBER_OF_ARGS 4 /* There should be 3 args plus the program call (= 4) */
+
+#define MIN_SAMPLE_INTERVAL 1 		/* Minimum sample interval in seconds */
+#define MAX_SAMPLE_INTERVAL 31536000	/* Max sample interval in seconds (one year, arbitrary) */
 
 bool newDay(time_t);
 
-int main(void) {
-//Ttestestest
+int main(int argc, char *argv[]) {
+/*
+ * First argument should be the can port (usually "can0")
+ *
+ * Second argument should be the desired sampling interval in seconds
+ *  ex.: "1","15","60","3600", etc
+ *
+ * Third argument should be the path to the folder in which the program will place the output files
+ *	ex.:"/home/hugo/Documents/AcqData"
+ *
+*/
+
+	if(argc != NUMBER_OF_ARGS){
+		perror("Wrong number of arguments (there should be 3)");
+		return EXIT_FAILURE;
+	}
+
 	/********************************************************************Initiate connection  start *****************************************************/
 
 	int s; // File descriptor for the socket
 
 
-	CAN_Init(&s); /* Run the initialization procedure, updating s */
+
+	int ret;
+	ret = CAN_Init(&s, argv[1]); /* Run the initialization procedure, updating s (the connection handle) and passing
+	the interface name argument*/
+	if(ret != EXIT_SUCCESS){ //If exit code is not null
+		return ret; // Exit the program and return the code returned by CAN_Init()
+	}
+
+	// Try to write some bytes over the connection
+	ret = CAN_SendSync(s);
+	if(ret <= 0){ // If the number of written bytes is negative or null
+		perror("Could not write bytes over the CAN connection");
+		puts("Is the CAN adapter plugged in?");
+		return EXIT_FAILURE;
+	}
 
 	/********************************************************************Initiate connection end *****************************************************/
 
 
-	/******************************************************************** User prompt start *****************************************************/
+	/******************************************************************** Sample intervel start *****************************************************/
+	int32_t sample_interval_sec = 0;
 	/*Prompt user for sample interval, number of samples and measurement type*/
-	int32_t sample_interval_sec/*, datapoints_to_acquire*/;
-	//printf("Please enter the desired number of samples:\n");
-	//prompt_for_number(&datapoints_to_acquire);
-	printf("Please enter the desired sample interval in seconds:\n");
-	prompt_for_number(&sample_interval_sec);
-	/******************************************************************** User prompt end *****************************************************/
+	//printf("Please enter the desired sample interval in seconds:\n");
+	//prompt_for_number(&sample_interval_sec);
+
+
+	if(argv[2] != NULL){
+		sscanf(argv[2],"%i",&sample_interval_sec);
+
+		if(sample_interval_sec < MIN_SAMPLE_INTERVAL || sample_interval_sec > MAX_SAMPLE_INTERVAL){
+			perror("Invalid sample interval");
+			return EXIT_FAILURE;
+		}
+
+		printf("Sample interval: %i seconds.\n", sample_interval_sec);
+
+	}else{
+		perror("No sample interval given.");
+		return EXIT_FAILURE;
+	}
+
+	/******************************************************************** Sample interval end *****************************************************/
 
 	/* File info */
-	char filename[LONG_STRING_BUFF_LEN];
+	char path_and_filename[LONG_STRING_BUFF_LEN];/* 1024 characters limit on the file path, enforced by snprintf() */
 	FILE *fptr;
 
 	measurement_t measurements_table[CAN_MAX_TOTAL_MESSAGES];/* this lists all the meas. that are available on CANbus and that we'll include in our .csv file (in order). */
@@ -64,7 +113,7 @@ int main(void) {
 	uint32_t datapoints_acquired = 0;
 
 
-	while(1){
+	while(1){ //never returns
 
 
 		while (!(time_current >= (time_last_sample + sample_interval_sec))) { /*While the time to get a new sample hasn't arrived yet*/
@@ -83,24 +132,26 @@ int main(void) {
 
 			/******************************************************************** File initialization start *****************************************************/
 			/* Generate the filename*/
-			generate_filename(filename);
+			generate_full_filename(path_and_filename, argv[3], LONG_STRING_BUFF_LEN);
 
 
 			/* Create the file and open it in write mode*/
-			fptr = fopen(filename, "w");
+			fptr = fopen(path_and_filename, "w");
 			if (fptr == NULL) {/* If null pointer is returned by fopen because it could not open the file*/
-				printf("Error! Could not open file.");
-				exit(1);
+				perror("Error! Could not open file");
+				free(path_and_filename);
+				return EXIT_FAILURE;
 			}
 
-			printf("Writing file header...\n");
+			//printf("Writing file header...\n");
 			write_file_header(fptr, measurements_table, nb_of_measurements);
 
 			/******************************************************************** File initialization end *****************************************************/
 
 
 			/******************************************************************** Acquisition start *****************************************************/
-			printf("Starting acquisition...\n");
+			printf("New file started at:\n");
+			printf("%s\n", path_and_filename);
 
 		}
 
@@ -110,19 +161,19 @@ int main(void) {
 
 			/*Once the time for a new sample has arrived...*/
 			/*Append one new data point(time plus all channels) to the file*/
-		fptr = fopen(filename, "a");
+		fptr = fopen(path_and_filename, "a");
 		fprintf(fptr,"%ld,", time_current); /*Print the time. %ld to print long decimal*/
 		//fprintf(fptr,",");
 
 		CAN_SendSync(s);/* Send a CAN SYNC frame on the specified socket */
-		sleep(CAN_RECEPTION_TIME); /* Sleep for a few seconds */
+		sleep(CAN_RECEPTION_TIME); /* Sleep for a second */
 		CAN_ReceiveMessages(s); /* Bring all received messages into the buffer */
 
 		int32_t i;
-		char temp_string[LONG_STRING_BUFF_LEN];
+		char temp_string[STRING_BUFF_LEN];
 		for (i = 0; i < nb_of_measurements; i++) {
 
-			 CAN_GetMeasurementValueStr(measurements_table[i].channel, measurements_table[i].node_id, temp_string, LONG_STRING_BUFF_LEN);
+			 CAN_GetMeasurementValueStr(measurements_table[i].channel, measurements_table[i].node_id, temp_string, STRING_BUFF_LEN);
 			 fprintf(fptr," %s,", temp_string);
 
 		}
@@ -139,6 +190,9 @@ int main(void) {
 
 	}
 
+	// The 2 lines below should never execute because of while(1)
+	free(path_and_filename);
+	return EXIT_SUCCESS;
 
 }
 

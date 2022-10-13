@@ -9,7 +9,8 @@
 #define MAIN_H_
 
 
-#define STRING_BUFF_LEN 64
-#define LONG_STRING_BUFF_LEN 512
+#define SHORT_STRING_BUFF_LEN 64
+#define STRING_BUFF_LEN 256
+#define LONG_STRING_BUFF_LEN 1024
 
 #endif /* MAIN_H_ */

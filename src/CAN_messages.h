@@ -28,7 +28,7 @@
 #include "main.h"
 
 
-#define CAN_INTERFACE "can0"	/* Name of the CANbus interface used for the program*/
+/*#define CAN_INTERFACE "can0"*/	/* Hard coded name of the CANbus interface used for the program*/
 
 #define CAN_MAX_TOTAL_MESSAGES 4096 /* ~128 nodes * ~32 messages = 4096 */
 
@@ -69,9 +69,9 @@ typedef struct {
 
 
 /* arg s is the file descriptor of the socket */
-int CAN_Init(int* s);
+int CAN_Init(int *s, char *);
 
-void CAN_SendSync(int s);
+int32_t CAN_SendSync(int s);
 
 void CAN_ReceiveMessages(int s);
 

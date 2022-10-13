@@ -9,19 +9,19 @@
 struct can_frame can_buff[CAN_MAX_TOTAL_MESSAGES]; /* Global CAN message buffer */
 uint32_t can_msg_cnt;
 
-int CAN_Init(int* s){
+int CAN_Init(int *s, char *can_ifname_str){
 
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 
-	const char *ifname = CAN_INTERFACE;
+	/*const char *ifname = CAN_INTERFACE;*/
 
 		if ((*s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) == -1) {
 			perror("Error while opening socket");
 			return -1;
 		}
 
-		strcpy(ifr.ifr_name, ifname);
+		strcpy(ifr.ifr_name, can_ifname_str); // CAN_INTERFACE for hard coded interface
 		ioctl(*s, SIOCGIFINDEX, &ifr);
 
 		fcntl(*s, F_SETFL, O_NONBLOCK); /* This will set the socket *globally* as non-blocking. That means if any other program uses the socket, it will
@@ -41,18 +41,18 @@ int CAN_Init(int* s){
 		addr.can_family  = AF_CAN;
 		addr.can_ifindex = ifr.ifr_ifindex;
 
-		printf("Using %s at index %d.\n", ifname, ifr.ifr_ifindex);
+		printf("Using %s at index %d.\n", can_ifname_str, ifr.ifr_ifindex);
 
 		if (bind(*s, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
 			perror("Error in socket bind");
 			return -2;
 		}
 
-		return 0;
+		return EXIT_SUCCESS;
 
 }
 
-void CAN_SendSync(int s){
+int32_t CAN_SendSync(int s){
 
 	int nbytes;
 	struct can_frame frame;
@@ -64,7 +64,7 @@ void CAN_SendSync(int s){
 
 	nbytes = write(s, &frame, sizeof(struct can_frame));
 
-	//printf("Wrote %d bytes\n", nbytes);
+	return nbytes;
 
 }
 
@@ -330,11 +330,11 @@ void CAN_ChannelNameLookup(channel_t channel, char * str, size_t str_len){ /* Ge
 void CAN_GetMeasurementNameStr(channel_t channel, uint8_t node_id, char * str, size_t str_len){
 
 
-	char temp_str_A[STRING_BUFF_LEN];
-	snprintf(temp_str_A, STRING_BUFF_LEN, "Node_%u.", node_id);
+	char temp_str_A[SHORT_STRING_BUFF_LEN];
+	snprintf(temp_str_A, SHORT_STRING_BUFF_LEN, "Node_%u.", node_id);
 
-	char temp_str_B[STRING_BUFF_LEN];
-	CAN_ChannelNameLookup(channel, temp_str_B, STRING_BUFF_LEN);
+	char temp_str_B[SHORT_STRING_BUFF_LEN];
+	CAN_ChannelNameLookup(channel, temp_str_B, SHORT_STRING_BUFF_LEN);
 
 	snprintf(str, str_len, "%s%s", temp_str_A, temp_str_B);
 
