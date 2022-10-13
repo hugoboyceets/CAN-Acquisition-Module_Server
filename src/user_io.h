@@ -4,6 +4,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <sys/types.h>
+//#include <struct_tm.h>
 
 #include "main.h"
 #include "CAN_messages.h"

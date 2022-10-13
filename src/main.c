@@ -108,6 +108,9 @@ int main(int argc, char *argv[]) {
 	time(&time_current);
 	time_t time_last_sample = 0;
 
+	struct tm *localtime_ptr;
+
+
 	bool newFile = true;/* Flag to start a new file */
 
 	uint32_t datapoints_acquired = 0;
@@ -159,11 +162,15 @@ int main(int argc, char *argv[]) {
 		time(&time_current); /* update time */
 		time_last_sample = time_current;
 
-			/*Once the time for a new sample has arrived...*/
-			/*Append one new data point(time plus all channels) to the file*/
+		localtime_ptr = localtime(&time_current); /* update the localtime (human readable) time structure */
+
+
+		/*Once the time for a new sample has arrived...*/
+		/*Append one new data point(time plus all channels) to the file*/
 		fptr = fopen(path_and_filename, "a");
-		fprintf(fptr,"%ld,", time_current); /*Print the time. %ld to print long decimal*/
-		//fprintf(fptr,",");
+		/*Print the Unix time (time_current as %ld) and the human-readable local time */
+		fprintf(fptr,"%ld, %04d-%02d-%02d_%02dh%02dm%02ds,", time_current, localtime_ptr->tm_year+1900, localtime_ptr->tm_mon+1, localtime_ptr->tm_mday, localtime_ptr->tm_hour, localtime_ptr->tm_min, localtime_ptr->tm_sec);
+
 
 		CAN_SendSync(s);/* Send a CAN SYNC frame on the specified socket */
 		sleep(CAN_RECEPTION_TIME); /* Sleep for a second */

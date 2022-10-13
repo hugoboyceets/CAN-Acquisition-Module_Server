@@ -74,6 +74,9 @@
 //    return 0;
 //}
 
+
+
+
 void generate_full_filename(char* full_filename, char* path, uint32_t len){
 
     time_t rawtime = time(NULL);
@@ -84,7 +87,7 @@ void generate_full_filename(char* full_filename, char* path, uint32_t len){
 
     }
 
-    struct tm *ptm = localtime(&rawtime);
+	struct tm *ptm = localtime(&rawtime);
 
     if (ptm == NULL) {
 
@@ -102,7 +105,7 @@ void write_file_header(FILE *fptr, measurement_t *measurements_table, uint8_t nb
     char temp_string[LONG_STRING_BUFF_LEN];
     uint8_t i;
      /* Print a list of the channels */
-    fprintf(fptr,"time");
+    fprintf(fptr,"Unix time, Local time");
     for(i = 0; i < nb_of_measurements;i++){// For every measurement
 
     	CAN_GetMeasurementNameStr(measurements_table[i].channel, measurements_table[i].node_id, temp_string, LONG_STRING_BUFF_LEN);/* Get the channel name string */
